@@ -20,9 +20,12 @@ const ReviewSchema = new mongoose.Schema({
     },
     bootcamp: {
         type: mongoose.Schema.ObjectId,
-        required: [true, 'please select an associated bootcamp'],
         ref: 'Bootcamp', // this is to tell that this is a reference to another model (Bootcamp model)
     },
+    course: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Course',
+    }, // Either bootcamp or course needs to be associated for a review
     user: {
         type: mongoose.Schema.ObjectId,
         required: [true, 'must have associated user'],
@@ -51,6 +54,15 @@ ReviewSchema.statics.getAverageRating = async function (bootcampId) {
     }
 };
 
+ReviewSchema.pre('save', async function (next) {
+    if (this.bootcamp || this.course) {
+        next();
+    } else {
+        throw new Error(
+            'review needs to be associated with either a course or a bootcamp'
+        );
+    }
+});
 ReviewSchema.post('save', async function (dummyDoc, next) {
     await this.constructor.getAverageRating(this.bootcamp);
     next();

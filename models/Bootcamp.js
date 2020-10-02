@@ -33,7 +33,7 @@ const BootcampSchema = new mongoose.Schema(
         },
         phone: {
             type: String,
-            maxlength: [20, 'Phone number cannot be greater than 20 numbers'],
+            maxlength: [20, 'Phone number cannot be greater than 10 numbers'],
         },
         email: {
             type: String,
@@ -45,6 +45,10 @@ const BootcampSchema = new mongoose.Schema(
         address: {
             type: String,
             required: [true, 'please provide an address'],
+        },
+        zipcode: {
+            type: Number,
+            required: [true, 'Zipcode is mandatory'],
         },
         location: {
             // Will get auto generated using a geocoding concept. The data type is GeoJSON point (Can alos be GeoJSON polygon)
@@ -85,6 +89,7 @@ const BootcampSchema = new mongoose.Schema(
         },
         averageCost: Number,
         photo: {
+            // Link of the iuploaded image
             type: String,
             default: 'no-photo.jpg',
         },
@@ -118,16 +123,8 @@ BootcampSchema.pre('save', function (next) {
 });
 BootcampSchema.pre('save', async function (next) {
     // Using arrow functions causes this. to behave differently
-    let location = await geocoder.geocode(this.address);
-    // let location = await geocoder.geocode({
-    //     address: '29 champs elysée',
-    //     country: 'France',
-    //     zipcode: '75008',
-    // }); // Another advanced way only for google and some top level APIs.
+    let location = await geocoder.geocode(this.zipcode);
     location = location[0];
-    // console.log('logging location from geocoding'.yellow.bold);
-    // console.log(location);
-    // location = location[0];
     this.location = {
         type: 'Point',
         coordinates: [location.longitude, location.latitude],
@@ -138,7 +135,7 @@ BootcampSchema.pre('save', async function (next) {
         country: location.country,
         zipCode: location.zipcode,
     };
-    this.address = undefined; // Doing this as once we get the location details the adress is not needed.
+    // this.address = undefined; // Doing this as once we get the location details the adress is not needed.
 
     next();
 });

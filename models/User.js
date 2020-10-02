@@ -6,6 +6,10 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
+    thrirdParty: {
+        type: String,
+        required: [true, 'Type of user is mandatory'],
+    },
     name: {
         type: String,
         required: [true, 'name is mandatory'],
@@ -26,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'password is mandatory'],
+        // required: [true, 'password is mandatory'],
         select: false,
     },
     resetPasswordToken: String,
@@ -35,6 +39,11 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now(),
     },
+});
+
+// 3rd party users do not need a password.
+UserSchema.path('password').required(function () {
+    return !this.thrirdParty;
 });
 
 UserSchema.pre('save', async function (next) {

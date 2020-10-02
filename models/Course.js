@@ -11,6 +11,10 @@ const CourseSchema = new mongoose.Schema({
         maxlength: [500, 'Should not exceed 500 characters'],
         required: [true, 'Must add a short or brief description'],
     },
+    contentList: {
+        type: [String],
+        required: [true, 'PLease provide the main key learnings provided'],
+    },
     weeks: {
         type: Number,
         required: [true, 'please add course length in number of weeks'],
@@ -27,6 +31,9 @@ const CourseSchema = new mongoose.Schema({
         type: String,
         enum: ['beginner', 'intermediate', 'advanced'],
         required: [true, 'please select a skill set'],
+    },
+    picture: {
+        type: String,
     },
     bootcamp: {
         type: mongoose.Schema.ObjectId,
@@ -60,6 +67,15 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
     }
 };
 
+CourseSchema.pre('save', async function (next) {
+    const length = 100;
+    this.contentList.forEach((content) => {
+        if (content.length > length) {
+            throw new Error('Each content cannot exceed 100 characters');
+        }
+    });
+    next();
+});
 CourseSchema.post('save', async function (dummyDoc, next) {
     await this.constructor.getAverageCost(this.bootcamp);
     next();
