@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "discoverbootcamps",
+  "private_key_id": "9d619f27910a5d114f60b99d0a70b93cf9004e90",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCf04mVCivLUa3D\nFBZxBexw58CDXqAMNXULX+2mvbIxXX4gAUWwvK8R04PFNFClj8U3q0o9cGaVNU2E\neHI9ySnav6XgE0fSmQnPWmtnZ7Me1+q9/m+BIhkRCS/E5mXjUvpVz/uxAeJLorlu\nAW6fKBl+LAke2Q2ZCeyMowh/Xu/2apNwmr2M9NP/EUJf2T1btiLyc5Pqk1qb2ftr\n1arAiFNE9n6aB0lF0dj2TWuLHu/4eHFZXEV4PW/hnNCpKNiFLelJMVpbYDHsJ9sG\n7Zf9xhqN0hoyOn8s0Zhbn4yEXYgCqsN+ROGlI3M7KX8XzB/AJ//KQ4PGSiXyvHUl\n6avErxc1AgMBAAECggEABgRVd2Qu4mRkjYXN03r03ApJg9iV32fKzH8TyBV3piae\nJy/NExqDX8EuAohV6em388DR1m7LGd5sGOrc6CkQ15Cj+sPXDh1fUmxVw0qS4nwf\n9P+lbH/fYDYPk5LV7qEy1fSyxcbroUvSvcq1gq3kicy4Gi5zNdn7Cw9fNEZbc9Qf\nieYcuh70kL7mPtS9IJ0LRCoBnPmoOJCaQfAkNfHSlSMaFploumIbF/NQF600TNW+\nV3qK87Z+o/dRqiR4qn4jdgajd1ueK6IGDW6vZDHIkjBd3UkfpWUv+X7F1HIbYr1X\nxwkazoJBYoHeJmAHiJqZuvMAt31WVP+Jxgt5ejMWUQKBgQDbJIULGoIjUSmlcScP\nXP03OnFSSOYw1QIRCEjI+KvNheZIyHgggogYUN+kWxC3hjSF8hQqsZKjI4P8OhQJ\njS2VEwtsrVQabkudOaETAi9aln9ZVItU71122mmFdaQkSGhnZEptlMK+8GqXJIVJ\nb4Q9aH7yTG9N0XTOLvcx6RMgEQKBgQC6tRLN/zRWY040tVGcLT2W5mMI9Hlklc8+\ngekOffSXfkxkpR/lNhAkgjZXGlbNcMg/AqWtO0xQ9jwlcqw9MNRq6vA1OOTyFhtc\nFAm+JALJnlstpEfak7HhkfFHfspsbu6mdSSfN06VWC6qFad/lZmHwLWVchE7jGYa\ncKgunUTo5QKBgQDYgftEHhuHIw//WYzau+ec4gvF3So4Aqs5ArNOg4jR1EHRlOZC\nUFR/mZ9rNWGNwHUyBRrxl2El9tfWodbcHPR0/UzjQVf/iQsBukcujZEVce09566E\n6ryvyVhJuBHEmxkzVT3HiBrkJIla7IUXKatANHZ/kw7AlnlNn88wK3Nu0QKBgQCC\nB11jTZrblyl+F9EQXYmJMEZElE5+uL6un7b5usq/PtxhM4a1ESPI6U6C9vsA9Mzg\n5S0RKj0KHZLh2a0OqJUnKRvFVSxNVQwU4neujlHKrJh/fuvz0+yMViGdUzYSsmdO\nUkMBB3mZFOLa3V3bwwo7uwA7ZkeOG0d4noDihfDZ6QKBgHUezMwo1ad0dgNXpsZE\nv8yN03qfzwcpLnqUnkKsdMwncN0RK3NE1qQ4pn7py3LVD8rbOObRaGzqocRBoBPc\nrRESTsKplnERgv9gsasEgvknGWNPI6mAHz2cXIsGa0eUSpDFZMkkPyiVNWBnzvLp\ncp/KJJQeOFDE4Mbr1q3PlxKM\n-----END PRIVATE KEY-----\n",
+  "client_email": "bootcamp-discovery@discoverbootcamps.iam.gserviceaccount.com",
+  "client_id": "106119446070153221858",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/bootcamp-discovery%40discoverbootcamps.iam.gserviceaccount.com"
+}
