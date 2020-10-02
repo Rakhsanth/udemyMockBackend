@@ -13,7 +13,7 @@ const CourseSchema = new mongoose.Schema({
     },
     contentList: {
         type: [String],
-        required: [true, 'PLease provide the main key learnings provided'],
+        // Required cannot be given for arrays so did in pre save middleware
     },
     weeks: {
         type: Number,
@@ -34,6 +34,7 @@ const CourseSchema = new mongoose.Schema({
     },
     picture: {
         type: String,
+        default: 'no-photo.jpg',
     },
     bootcamp: {
         type: mongoose.Schema.ObjectId,
@@ -68,6 +69,11 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
 };
 
 CourseSchema.pre('save', async function (next) {
+    if (this.contentList.length === 0) {
+        throw new Error(
+            'please provide list of major learning contents provided'
+        );
+    }
     const length = 100;
     this.contentList.forEach((content) => {
         if (content.length > length) {

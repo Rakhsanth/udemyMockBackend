@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        // required: [true, 'password is mandatory'],
+        // required: [true, 'password is mandatory'], validation provided based on 3rd party login/signup
         select: false,
     },
     resetPasswordToken: String,
