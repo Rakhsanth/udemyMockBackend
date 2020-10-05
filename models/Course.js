@@ -15,6 +15,17 @@ const CourseSchema = new mongoose.Schema({
         type: [String],
         // Required cannot be given for arrays so did in pre save middleware
     },
+    category: {
+        type: String,
+        required: [true, 'please provide a category for the course'],
+        enum: [
+            'development',
+            'design',
+            'data science',
+            'digital marketing',
+            'finance',
+        ],
+    },
     weeks: {
         type: Number,
         required: [true, 'please add course length in number of weeks'],
@@ -45,6 +56,11 @@ const CourseSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         required: [true, 'must have associated user'],
         ref: 'User',
+    },
+    averageRating: {
+        type: Number,
+        min: [1, 'Average rating cannot be below 1'],
+        max: [5, 'average rating cannot exceed 5'],
     },
     createdAt: {
         type: Date,

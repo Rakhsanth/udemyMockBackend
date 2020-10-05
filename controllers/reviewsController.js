@@ -3,6 +3,7 @@
 const ErrorResponse = require('../utils/error');
 const asyncMiddlewareHandler = require('../middlewares/asyncMiddlewareHandler');
 const Bootcamp = require('../models/Bootcamp');
+const Course = require('../models/Course');
 const User = require('../models/User');
 const Review = require('../models/Review');
 
@@ -48,20 +49,32 @@ const getReview = asyncMiddlewareHandler(async (request, response, next) => {
         error: false,
     });
 });
-// @ description : add a review
+// @ description : add a review to bootcamp
 // @ route : POST api/v1/bootcamps/:bootcampId/reviews
+//                      or
+// @ route : POST api/v1/courses/:courseId/reviews
 // @ access : private/user
 const addReview = asyncMiddlewareHandler(async (request, response, next) => {
     const bootcamp = await Bootcamp.findById(request.params.bootcampId);
+    const course = await Course.findById(request.params.courseId);
 
-    if (!bootcamp) {
-        return next(new ErrorResponse(`No such bootcamp exists`, 400));
+    if (!bootcamp && !course) {
+        return next(new ErrorResponse(`No such bootcamp or course exist`, 400));
     }
 
-    // Associate logged in user and bootcamp to this review
-    request.body.bootcamp = request.params.bootcampId;
-    // This is comming from the protected middleware
-    request.body.user = request.user.id;
+    if (bootcamp) {
+        // Associate logged in user and bootcamp/course to this review
+        request.body.bootcamp = request.params.bootcampId;
+        // This is comming from the protected middleware
+        request.body.user = request.user.id;
+    }
+
+    if (course) {
+        // Associate logged in user and bootcamp/course to this review
+        request.body.course = request.params.courseId;
+        // This is comming from the protected middleware
+        request.body.user = request.user.id;
+    }
 
     const review = await Review.create(request.body);
 

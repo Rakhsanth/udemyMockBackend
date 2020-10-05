@@ -69,23 +69,10 @@ const BootcampSchema = new mongoose.Schema(
             country: String,
             zipCode: String,
         },
-        careers: {
-            type: [String],
-            required: true,
-            enum: [
-                'web development',
-                'native application development',
-                'game development',
-                'data structures and algorithms',
-                'data science',
-                'digital marketing',
-                'devops',
-            ],
-        },
         averageRating: {
             type: Number,
-            min: [1, 'minimum rating allowed is 1'],
-            max: [10, 'maximum rating allowed is 10'],
+            min: [1, 'Average rating cannot be below 1'],
+            max: [5, 'average rating cannot exceed 5'],
         },
         averageCost: Number,
         photo: {

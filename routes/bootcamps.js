@@ -14,6 +14,7 @@ const coursesRouter = require('./courses');
 const reviewsRouter = require('./reviews');
 const advancedResults = require('../utils/advancedResults');
 const Bootcamp = require('../models/Bootcamp');
+const Course = require('../models/Course');
 const { protected, roleAuthorize } = require('../middlewares/authMiddlewares');
 
 const router = express.Router();
@@ -26,8 +27,12 @@ router.use('/:bootcampId/reviews', reviewsRouter);
 
 router
     .route('/')
-    .get(advancedResults(Bootcamp, 'courses'), getBootcamps)
+    .get(advancedResults(Bootcamp, 'bootcamp', 'courses'), getBootcamps)
     .post(protected, roleAuthorize('publisher', 'admin'), postBootcamps);
+
+router
+    .route('/category/:category')
+    .get(advancedResults(Bootcamp, 'bootcamp', 'courses'), getBootcamps);
 
 router
     .route('/:id')

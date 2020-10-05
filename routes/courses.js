@@ -11,20 +11,28 @@ const {
 const advancedResults = require('../utils/advancedResults');
 const Course = require('../models/Course');
 const { protected, roleAuthorize } = require('../middlewares/authMiddlewares');
+const reviewRouter = require('./reviews');
 
 // Contructing populate for reusable advancedResults middleware
 const populate = {
     path: 'bootcamp',
-    select: 'name careers',
+    select: 'name',
 };
 
 // This is needed as we get url re-routing from bootcamps router
 const router = express.Router({ mergeParams: true });
 
+router.use('/:courseId/reviews', reviewRouter);
+
 router
     .route('/')
-    .get(advancedResults(Course, populate), getCourses)
+    .get(advancedResults(Course, 'course', populate), getCourses)
     .post(protected, roleAuthorize('publisher', 'admin'), addCourse);
+
+router
+    .route('/category/:category')
+    .get(advancedResults(Course, 'course', populate), getCourses);
+
 router
     .route('/:id')
     .get(getCourse)

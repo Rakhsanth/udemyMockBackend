@@ -30,7 +30,8 @@ const ReviewSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         required: [true, 'must have associated user'],
         ref: 'User',
-        unique: [true, 'only 1 review is allowed per user'],
+        // unique: [true, 'only 1 review is allowed per user'], User along with course or bootcamp should be unique
+        // This is done using compound indexing after the schema declaration.
     },
     createdAt: {
         type: Date,
@@ -38,19 +39,44 @@ const ReviewSchema = new mongoose.Schema({
     },
 });
 
-ReviewSchema.statics.getAverageRating = async function (bootcampId) {
-    const aggregateObj = await this.aggregate([
-        { $match: { bootcamp: bootcampId } }, // match and group are part of mongo aggregate stages. Refer docs of MongoDB
-        { $group: { _id: '$bootcamp', averageRating: { $avg: '$rating' } } },
-    ]);
-    console.log('getting average rating'.blue.inverse);
-    console.log(aggregateObj);
-    try {
-        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
-            averageRating: aggregateObj[0].averageRating,
-        });
-    } catch (err) {
-        console.log(err);
+ReviewSchema.index({ bootcamp: 1, course: 1, user: 1 }, { unique: true });
+// ReviewSchema.index({ course: 1, user: 1 }, { unique: true });
+
+ReviewSchema.statics.getAverageRating = async function (bootcampId, courseId) {
+    if (bootcampId) {
+        const aggregateObj = await this.aggregate([
+            { $match: { bootcamp: bootcampId } }, // match and group are part of mongo aggregate stages. Refer docs of MongoDB
+            {
+                $group: {
+                    _id: '$bootcamp',
+                    averageRating: { $avg: '$rating' },
+                },
+            },
+        ]);
+        console.log('getting average rating'.blue.inverse);
+        console.log(aggregateObj);
+        try {
+            await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
+                averageRating: aggregateObj[0].averageRating,
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    if (courseId) {
+        const aggregateObj = await this.aggregate([
+            { $match: { course: courseId } }, // match and group are part of mongo aggregate stages. Refer docs of MongoDB
+            { $group: { _id: '$course', averageRating: { $avg: '$rating' } } },
+        ]);
+        console.log('getting average rating'.blue.inverse);
+        console.log(aggregateObj);
+        try {
+            await this.model('Course').findByIdAndUpdate(courseId, {
+                averageRating: aggregateObj[0].averageRating,
+            });
+        } catch (err) {
+            console.log(err);
+        }
     }
 };
 
@@ -64,11 +90,11 @@ ReviewSchema.pre('save', async function (next) {
     }
 });
 ReviewSchema.post('save', async function (dummyDoc, next) {
-    await this.constructor.getAverageRating(this.bootcamp);
+    await this.constructor.getAverageRating(this.bootcamp, this.course);
     next();
 });
 ReviewSchema.pre('remove', async function (next) {
-    await this.constructor.getAverageRating(this.bootcamp);
+    await this.constructor.getAverageRating(this.bootcamp, this.course);
     next();
 });
 

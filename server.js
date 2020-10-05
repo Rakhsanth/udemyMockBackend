@@ -56,8 +56,8 @@ app.use(preventXSS()); // to prevent XSS
 
 // API rate limiting
 const rateLimiter = expressRateLimit({
-    windowMs: 1 * 60 * 1000, // For 15 minutes
-    max: 3,
+    windowMs: 1 * 60 * 1000, // For 1 minute
+    max: process.env.API_LIMIT,
     message: 'exceeded the API limit. Please try after few minutes.',
 });
 app.use(rateLimiter); // Plugging in the rate limiter
