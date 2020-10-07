@@ -27,9 +27,9 @@ const getCurrentUser = asyncMiddlewareHandler(
 // @ route : POST api/v1/auth/register
 // @ access : public
 const userRegister = asyncMiddlewareHandler(async (request, response, next) => {
-    const { name, email, password, role } = request.body;
+    const { thirdParty, name, email, password, role } = request.body;
 
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ thirdParty, name, email, password, role });
     // as we have added a method similar to statics. this thing will give the generated jwt.
     // const token = user.getSignedJwtToken();
     // response.status(200).json({ success: true, token });

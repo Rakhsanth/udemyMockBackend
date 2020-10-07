@@ -6,8 +6,8 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
-    thrirdParty: {
-        type: String,
+    thirdParty: {
+        type: Boolean,
         required: [true, 'Type of user is mandatory'],
     },
     name: {
