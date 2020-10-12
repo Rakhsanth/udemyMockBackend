@@ -43,6 +43,10 @@ const CourseSchema = new mongoose.Schema({
         enum: ['beginner', 'intermediate', 'advanced'],
         required: [true, 'please select a skill set'],
     },
+    duration: {
+        type: Number,
+        required: [true, 'provide a duration for the course'],
+    },
     picture: {
         type: String,
         default: 'no-photo.jpg',

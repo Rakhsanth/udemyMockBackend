@@ -7,7 +7,7 @@ const advancedResults = (model, modelType, populate) => {
 
         const reqQuery = { ...request.query };
 
-        const objectsToRemoveFromQuery = ['select', 'sort', 'page'];
+        const objectsToRemoveFromQuery = ['select', 'sort', 'page', 'limit'];
         // This removal is done for query formatting to get rid of slect and such words which are not part of the model.
         objectsToRemoveFromQuery.forEach(
             (eachObject) => delete reqQuery[eachObject] // here reqQuery.eachObject didnot work
@@ -17,11 +17,27 @@ const advancedResults = (model, modelType, populate) => {
         let queryString = JSON.stringify(reqQuery);
         // If any of these are found just add a $ symbol before it so that it becomes a mongo query.
         queryString = queryString.replace(
-            /\b(lte|lt|gte|gt|in)\b/g,
+            /\b(lte|lt|gte|gt|in|eq)\b/g,
             (match) => `$${match}`
         );
 
         const queryObject = JSON.parse(queryString);
+
+        if (queryObject.duration !== undefined) {
+            console.log(queryObject.duration);
+            if (Array.isArray(queryObject.duration.$lte)) {
+                queryObject.duration.$lte = Math.max(
+                    ...queryObject.duration.$lte
+                );
+            }
+            if (Array.isArray(queryObject.duration.$gte)) {
+                queryObject.duration.$gte = Math.min(
+                    ...queryObject.duration.$gte
+                );
+            }
+            console.log(queryObject.duration);
+        }
+
         console.log(queryObject);
 
         if (request.params.category) {
@@ -70,11 +86,13 @@ const advancedResults = (model, modelType, populate) => {
         };
         let pageNumber = Number(request.query.page) || 1;
         let limit = Number(request.query.limit) || 5;
+        console.log(`limit : ${limit}`.yellow);
         let toSkip = (pageNumber - 1) * limit;
         let startIndex = (pageNumber - 1) * limit;
         let endIndex = pageNumber * limit;
 
         let tempResult = await query;
+        console.log(`result length before page : ${tempResult.length}`.yellow);
 
         query = query.skip(toSkip).limit(limit);
 
