@@ -51,6 +51,10 @@ const CourseSchema = new mongoose.Schema({
         type: String,
         default: 'no-photo.jpg',
     },
+    video: {
+        type: String,
+        default: 'no-video',
+    },
     bootcamp: {
         type: mongoose.Schema.ObjectId,
         required: [true, 'please select an associated bootcamp'],

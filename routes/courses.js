@@ -7,6 +7,8 @@ const {
     addCourse,
     updateCourse,
     deleteCourse,
+    uploadCourseImage,
+    uploadCourseVideo,
 } = require('../controllers/coursesController');
 const advancedResults = require('../utils/advancedResults');
 const Course = require('../models/Course');
@@ -38,5 +40,13 @@ router
     .get(getCourse)
     .put(protected, roleAuthorize('publisher', 'admin'), updateCourse)
     .delete(protected, roleAuthorize('publisher', 'admin'), deleteCourse);
+
+router
+    .route('/:id/image')
+    .put(protected, roleAuthorize('publisher', 'admin'), uploadCourseImage);
+
+router
+    .route('/:id/video')
+    .put(protected, roleAuthorize('publisher', 'admin'), uploadCourseVideo);
 
 module.exports = router;
