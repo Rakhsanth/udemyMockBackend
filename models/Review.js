@@ -57,7 +57,9 @@ ReviewSchema.statics.getAverageRating = async function (bootcampId, courseId) {
         console.log(aggregateObj);
         try {
             await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
-                averageRating: aggregateObj[0].averageRating,
+                averageRating: Number(
+                    aggregateObj[0].averageRating.toPrecision(2)
+                ),
             });
         } catch (err) {
             console.log(err);
@@ -72,11 +74,43 @@ ReviewSchema.statics.getAverageRating = async function (bootcampId, courseId) {
         console.log(aggregateObj);
         try {
             await this.model('Course').findByIdAndUpdate(courseId, {
-                averageRating: aggregateObj[0].averageRating,
+                averageRating: Number(
+                    aggregateObj[0].averageRating.toPrecision(2)
+                ),
             });
         } catch (err) {
             console.log(err);
         }
+    }
+};
+ReviewSchema.statics.getBootcampRatingCount = async function (bootcampId) {
+    const aggregateObj = await this.aggregate([
+        { $match: { bootcamp: bootcampId } },
+        { $group: { _id: null, count: { $sum: 1 } } },
+    ]);
+    console.log('getting average rating'.yellow.inverse);
+    console.log(aggregateObj[0].count);
+    try {
+        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
+            ratings: aggregateObj[0].count,
+        });
+    } catch (err) {
+        console.log(err);
+    }
+};
+ReviewSchema.statics.getCourseRatingCount = async function (courseId) {
+    const aggregateObj = await this.aggregate([
+        { $match: { course: courseId } },
+        { $group: { _id: null, count: { $sum: 1 } } },
+    ]);
+    console.log('getting average rating'.yellow.inverse);
+    console.log(aggregateObj[0].count);
+    try {
+        await this.model('Course').findByIdAndUpdate(courseId, {
+            ratings: aggregateObj[0].count,
+        });
+    } catch (err) {
+        console.log(err);
     }
 };
 
@@ -91,6 +125,14 @@ ReviewSchema.pre('save', async function (next) {
 });
 ReviewSchema.post('save', async function (dummyDoc, next) {
     await this.constructor.getAverageRating(this.bootcamp, this.course);
+    next();
+});
+ReviewSchema.post('save', async function (dummyDoc, next) {
+    await this.constructor.getBootcampRatingCount(this.bootcamp);
+    next();
+});
+ReviewSchema.post('save', async function (dummyDoc, next) {
+    await this.constructor.getCourseRatingCount(this.course);
     next();
 });
 ReviewSchema.pre('remove', async function (next) {

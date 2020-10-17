@@ -12,19 +12,7 @@ const Review = require('../models/Review');
 // @ route : GET api/v1/bootcamps/:bootcampId/reviews
 // @ access : public
 const getReviews = asyncMiddlewareHandler(async (request, response, next) => {
-    if (request.params.bootcampId) {
-        const reviews = await Review.find({
-            bootcamp: request.params.bootcampId,
-        });
-        response.status(200).json({
-            success: true,
-            count: reviews.length,
-            data: reviews,
-            error: false,
-        });
-    } else {
-        response.status(200).json(response.advancedResults); // This advancedResults is passed as middleware
-    }
+    response.status(200).json(response.advancedReviewResults); // This advancedResults is passed as middleware
 });
 // @ description : get a single review
 // @ route : GET api/v1/reviews/:id
@@ -88,22 +76,25 @@ const addReview = asyncMiddlewareHandler(async (request, response, next) => {
 // @ route : PUT api/v1/reviews/:id
 // @ access : private/user
 const updateReview = asyncMiddlewareHandler(async (request, response, next) => {
-    let review = await Review.findById(request.params.id);
+    const { title, review, rating } = request.body;
 
-    if (!review) {
+    let userReview = await Review.findById(request.params.id);
+
+    if (!userReview) {
         return next(new ErrorResponse(`No such review exists`, 401));
     }
 
-    if (review.user.toString() !== request.user.id) {
+    if (userReview.user.toString() !== request.user.id) {
         return next(
             new ErrorResponse(`Not autorized to edit this review`, 401)
         );
     }
 
-    review = await Review.findByIdAndUpdate(request.params.id, request.body, {
-        new: true,
-        runValidators: true,
-    });
+    userReview.title = title;
+    userReview.review = review;
+    userReview.rating = rating;
+
+    await userReview.save();
 
     response.status(200).json({
         success: true,

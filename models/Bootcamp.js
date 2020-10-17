@@ -74,6 +74,10 @@ const BootcampSchema = new mongoose.Schema(
             min: [1, 'Average rating cannot be below 1'],
             max: [5, 'average rating cannot exceed 5'],
         },
+        ratings: {
+            type: Number,
+            default: 0,
+        },
         averageCost: Number,
         photo: {
             // Link of the iuploaded image

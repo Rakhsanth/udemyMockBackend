@@ -11,6 +11,10 @@ const CourseSchema = new mongoose.Schema({
         maxlength: [500, 'Should not exceed 500 characters'],
         required: [true, 'Must add a short or brief description'],
     },
+    author: {
+        type: String,
+        default: 'Bootcamp people',
+    },
     contentList: {
         type: [String],
         // Required cannot be given for arrays so did in pre save middleware
@@ -67,8 +71,13 @@ const CourseSchema = new mongoose.Schema({
     },
     averageRating: {
         type: Number,
+        default: 1,
         min: [1, 'Average rating cannot be below 1'],
         max: [5, 'average rating cannot exceed 5'],
+    },
+    ratings: {
+        type: Number,
+        default: 0,
     },
     createdAt: {
         type: Date,
