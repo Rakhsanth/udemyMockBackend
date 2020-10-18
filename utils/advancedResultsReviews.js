@@ -7,7 +7,7 @@ const advancedResultsReviews = (populate) => {
 
         const reqQuery = { ...request.query };
         // deciding what all may cause error to mongoDb query
-        const objectsToRemove = ['select', 'sort', 'page', 'limit'];
+        const objectsToRemove = ['select', 'sort', 'page', 'limit', 'percents'];
         // removing above objects if present
         objectsToRemove.forEach((element) => delete reqQuery[element]);
 
@@ -75,6 +75,41 @@ const advancedResultsReviews = (populate) => {
             return next(err);
         }
 
+        let percents = {
+            one: 0,
+            two: 0,
+            three: 0,
+            four: 0,
+            five: 0,
+        };
+        if (request.query.percents) {
+            tempResult.forEach((review, index) => {
+                let currentRating = review.rating;
+                currentRating = Math.floor(currentRating);
+                if (currentRating === 1) {
+                    percents.one++;
+                }
+                if (currentRating === 2) {
+                    percents.two++;
+                }
+                if (currentRating === 3) {
+                    percents.three++;
+                }
+                if (currentRating === 4) {
+                    percents.four++;
+                }
+                if (currentRating === 5) {
+                    percents.five++;
+                }
+            });
+            const percentsList = Object.entries(percents);
+            percentsList.forEach(([key, value], index) => {
+                percentsList[index][1] = (value / totalCount) * 100;
+            });
+            percents = Object.fromEntries(percentsList);
+            console.log(percents);
+        }
+
         response.advancedReviewResults = {
             success: true,
             count: totalCount,
@@ -82,6 +117,10 @@ const advancedResultsReviews = (populate) => {
             data: result,
             error: false,
         };
+
+        if (percents) {
+            response.advancedReviewResults.percents = percents;
+        }
 
         next(); // forgot once and got the hard hit for it
     };
