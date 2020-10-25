@@ -1,7 +1,10 @@
 // 3rd party modules
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+
+// custom modules
 const geocoder = require('../utils/geoCoder');
+const ErrorResponse = require('../utils/error');
 
 const BootcampSchema = new mongoose.Schema(
     {
@@ -18,6 +21,9 @@ const BootcampSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Bootcamp must have description'],
             maxlength: [500, 'Cannot exceet 500 characters'],
+        },
+        offerings: {
+            type: [String],
         },
         user: {
             type: mongoose.Schema.ObjectId,
@@ -41,6 +47,14 @@ const BootcampSchema = new mongoose.Schema(
                 /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
                 'please enter a valid email address',
             ],
+        },
+        district: {
+            type: String,
+            required: [true, 'please provide a district name'],
+        },
+        state: {
+            type: String,
+            required: [true, 'please provide state'],
         },
         address: {
             type: String,
@@ -109,6 +123,14 @@ const BootcampSchema = new mongoose.Schema(
 
 BootcampSchema.pre('save', function (next) {
     // Mongoose tells thet here no arrow function to be used
+    if (this.offerings.length < 2) {
+        return next(
+            new ErrorResponse(
+                'Please provide atleast 2 points as your offerings',
+                404
+            )
+        );
+    }
     this.slug = slugify(this.name, { lower: true });
     next();
 });

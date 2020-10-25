@@ -42,14 +42,14 @@ const getBootcamp = asyncMiddlewareHandler(async (request, response, next) => {
 const postBootcamps = asyncMiddlewareHandler(
     async (request, response, next) => {
         // only admin can create multiple bootcamps. Check if user already created a bootcamp and he is admin
-        const existingBootcamp = await Bootcamp.findOne({
+        const existingBootcamps = await Bootcamp.find({
             user: request.user.id,
         });
 
-        if (existingBootcamp && request.user.role !== 'admin') {
+        if (existingBootcamps.length > 5 && request.user.role !== 'admin') {
             return next(
                 new ErrorResponse(
-                    `Current user is not allowed to create multiple bootcamps`,
+                    `Current user cannot have more than 5 bootcamps`,
                     403
                 )
             );
