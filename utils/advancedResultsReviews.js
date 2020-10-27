@@ -48,6 +48,7 @@ const advancedResultsReviews = (populate) => {
 
         const pagination = {
             prev: null,
+            current: Number(request.query.page) || 1,
             next: null,
         };
 
