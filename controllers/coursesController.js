@@ -128,10 +128,14 @@ const updateCourse = asyncMiddlewareHandler(async (request, response, next) => {
         );
     }
 
-    course = await Course.findByIdAndUpdate(request.params.id, request.body, {
-        new: true,
-        runValidators: true,
-    });
+    course = await Course.findOneAndUpdate(
+        { _id: request.params.id },
+        request.body,
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
 
     response.status(200).json({
         success: true,

@@ -21,6 +21,7 @@ const courseRoutes = require('./routes/courses');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const reviewsRoutes = require('./routes/reviews');
+const paymentRoutes = require('./routes/payment');
 const connectDB = require('./config/db');
 const mongoErrorHandler = require('./middlewares/mongoErrorHandler');
 
@@ -71,6 +72,7 @@ app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 // error handling middleware. This recieves the next() from the above router middleware.
 app.use(mongoErrorHandler);
 

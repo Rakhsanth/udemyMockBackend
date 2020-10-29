@@ -1,4 +1,15 @@
 const mongoose = require('mongoose');
+const Pusher = require('pusher');
+
+// Pusher related stuff
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,
+    key: process.env.PUSHER_KEY,
+    secret: process.env.PUSHER_SECRET,
+    cluster: process.env.PUSHER_CLUSTER,
+    useTLS: true,
+});
+const channel = 'courses';
 
 const CourseSchema = new mongoose.Schema({
     title: {
@@ -117,6 +128,15 @@ CourseSchema.pre('save', async function (next) {
 });
 CourseSchema.post('save', async function (dummyDoc, next) {
     await this.constructor.getAverageCost(this.bootcamp);
+    console.log('can trigger pusher here'.green.bold);
+    next();
+});
+CourseSchema.post('findOneAndUpdate', async function (updatedDoc, next) {
+    console.log('can trigger pusher here'.green.bold);
+    console.log(updatedDoc);
+    pusher.trigger(channel, 'updated', {
+        updatedDoc,
+    });
     next();
 });
 CourseSchema.pre('remove', async function (next) {
