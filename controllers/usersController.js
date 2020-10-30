@@ -4,7 +4,6 @@
 const User = require('../models/User');
 const ErrorResponse = require('../utils/error');
 const asyncMiddlewareHandler = require('../middlewares/asyncMiddlewareHandler');
-const advancedResults = require('../utils/advancedResults');
 
 // @ description : Get all users
 // @ route : GET api/v1/users
@@ -50,9 +49,7 @@ const updateUser = asyncMiddlewareHandler(async (request, response, next) => {
     });
 
     if (!user) {
-        if (!user) {
-            return next(new ErrorResponse('No such user found', 401));
-        }
+        return next(new ErrorResponse('No such user found', 401));
     }
 
     response.status(201).json({
@@ -65,13 +62,27 @@ const updateUser = asyncMiddlewareHandler(async (request, response, next) => {
 // @ route : DELETE api/v1/users/:id
 // @ access : private/admin
 const deleteUser = asyncMiddlewareHandler(async (request, response, next) => {
-    const user = await User.findByIdAndDelete(request.params.id);
+    const user = await User.findById(request.params.id);
 
     if (!user) {
-        if (!user) {
-            return next(new ErrorResponse('No such user found', 401));
+        return next(new ErrorResponse('No such user found', 401));
+    }
+
+    if (
+        request.user.id !== user.id.toString() &&
+        request.user.role !== 'admin'
+    ) {
+        {
+            return next(
+                new ErrorResponse(
+                    'User is not an admin or owner of this bootcamp',
+                    400
+                )
+            );
         }
     }
+
+    await user.remove();
 
     response.status(200).json({
         success: true,

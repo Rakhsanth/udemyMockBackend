@@ -22,8 +22,11 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const reviewsRoutes = require('./routes/reviews');
 const paymentRoutes = require('./routes/payment');
+const profileRoutes = require('./routes/profiles');
 const connectDB = require('./config/db');
 const mongoErrorHandler = require('./middlewares/mongoErrorHandler');
+// Models
+const Course = require('./models/Course');
 
 // configuring environment variables (for process.env using dotenv module)
 dotenv.config({
@@ -73,6 +76,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
 app.use('/api/v1/payment', paymentRoutes);
+app.use('/api/v1/profiles', profileRoutes);
 // error handling middleware. This recieves the next() from the above router middleware.
 app.use(mongoErrorHandler);
 

@@ -90,13 +90,8 @@ const addCourse = asyncMiddlewareHandler(async (request, response, next) => {
     request.body.user = request.user.id;
 
     const course = await Course.create(request.body);
-    // if (!course) {
-    //     return next(
-    //         new ErrorResponse(`No course found with ID: ${request.params.id}`)
-    //     );
-    // }
 
-    response.status(200).json({
+    response.status(201).json({
         success: true,
         data: course,
         error: false,
@@ -128,14 +123,11 @@ const updateCourse = asyncMiddlewareHandler(async (request, response, next) => {
         );
     }
 
-    course = await Course.findOneAndUpdate(
-        { _id: request.params.id },
-        request.body,
-        {
-            new: true,
-            runValidators: true,
-        }
-    );
+    // Copying new values to be updated to the main course object
+    Object.assign(course, request.body);
+    // Issued save query instead of update related things
+    //to make validating middlewares to work as ecpected.
+    await course.save();
 
     response.status(200).json({
         success: true,

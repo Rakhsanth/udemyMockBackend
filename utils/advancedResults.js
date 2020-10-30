@@ -1,4 +1,5 @@
 const Course = require('../models/Course');
+const ErrorResponse = require('../utils/error');
 
 const advancedResults = (model, modelType, populate) => {
     return async (request, response, next) => {
@@ -93,6 +94,14 @@ const advancedResults = (model, modelType, populate) => {
 
         let tempResult = await query;
         console.log(`result length before page : ${tempResult.length}`.yellow);
+        if (tempResult.length === 0) {
+            return next(
+                new ErrorResponse(
+                    'No results found for the current filter',
+                    404
+                )
+            );
+        }
 
         query = query.skip(toSkip).limit(limit);
 
@@ -108,6 +117,15 @@ const advancedResults = (model, modelType, populate) => {
 
         if (!results) {
             return next(err);
+        }
+
+        if (results.length === 0) {
+            return next(
+                new ErrorResponse(
+                    'No results found for the current filter',
+                    404
+                )
+            );
         }
 
         response.advancedResults = {

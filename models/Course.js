@@ -41,9 +41,24 @@ const CourseSchema = new mongoose.Schema({
             'finance',
         ],
     },
-    weeks: {
+    startDate: {
+        type: Date,
+        required: [true, 'Please provide a starting date for the course'],
+    },
+    endDate: {
+        type: Date,
+        required: [true, 'Please provide an end date for the course'],
+    },
+    maxStudentsAllowed: {
         type: Number,
-        required: [true, 'please add course length in number of weeks'],
+        required: [
+            true,
+            'Please provide the maximum no of students for this course',
+        ],
+    },
+    currentStudentsCount: {
+        type: Number,
+        default: 0,
     },
     cost: {
         type: Number,
@@ -60,7 +75,7 @@ const CourseSchema = new mongoose.Schema({
     },
     duration: {
         type: Number,
-        required: [true, 'provide a duration for the course'],
+        default: 0,
     },
     picture: {
         type: String,
@@ -111,6 +126,23 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
         console.log(err);
     }
 };
+CourseSchema.statics.setCourseDuration = async function (course) {
+    try {
+        const intervalInMillis =
+            course.endDate.getTime() - course.startDate.getTime();
+        const noOfDays = intervalInMillis / 24 / 60 / 60 / 1000;
+        const duration = Math.round((noOfDays * 1.0) / 30);
+        const updatedCourse = await this.findByIdAndUpdate(
+            course.id,
+            { duration: duration },
+            { new: true }
+        );
+        console.log(updatedCourse);
+        return updatedCourse;
+    } catch (err) {
+        console.log(err);
+    }
+};
 
 CourseSchema.pre('save', async function (next) {
     if (this.contentList.length === 0) {
@@ -124,16 +156,26 @@ CourseSchema.pre('save', async function (next) {
             throw new Error('Each content cannot exceed 100 characters');
         }
     });
+    if (this.endDate < this.startDate) {
+        throw new Error('Course end date cannot be less than start date');
+    }
     next();
 });
-CourseSchema.post('save', async function (dummyDoc, next) {
+CourseSchema.post('save', async function (updatedDoc, next) {
     await this.constructor.getAverageCost(this.bootcamp);
-    console.log('can trigger pusher here'.green.bold);
+    const intervalInMillis = this.endDate.getTime() - this.startDate.getTime();
+    const noOfDays = intervalInMillis / 24 / 60 / 60 / 1000;
+    this.duration = Math.round((noOfDays * 1.0) / 30);
+    console.log('Triggered pusher here'.green.bold);
+    // console.log(updatedDoc);
+    pusher.trigger(channel, 'updated', {
+        updatedDoc,
+    });
     next();
 });
 CourseSchema.post('findOneAndUpdate', async function (updatedDoc, next) {
-    console.log('can trigger pusher here'.green.bold);
-    console.log(updatedDoc);
+    console.log('Triggered pusher here'.green.bold);
+    // console.log(updatedDoc);
     pusher.trigger(channel, 'updated', {
         updatedDoc,
     });

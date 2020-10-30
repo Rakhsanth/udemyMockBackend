@@ -80,4 +80,9 @@ UserSchema.methods.getResetToken = function () {
     return resetToken;
 };
 
+UserSchema.pre('remove', async function (next) {
+    await this.model('Profile').deleteMany({ user: this.id });
+    next();
+});
+
 module.exports = mongoose.model('User', UserSchema);
