@@ -38,7 +38,7 @@ router
 router
     .route('/:id')
     .get(getCourse)
-    .put(protected, roleAuthorize('publisher', 'admin'), updateCourse)
+    .put(protected, roleAuthorize('user', 'publisher', 'admin'), updateCourse)
     .delete(protected, roleAuthorize('publisher', 'admin'), deleteCourse);
 
 router

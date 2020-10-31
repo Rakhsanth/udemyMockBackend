@@ -166,18 +166,15 @@ CourseSchema.post('save', async function (updatedDoc, next) {
     const intervalInMillis = this.endDate.getTime() - this.startDate.getTime();
     const noOfDays = intervalInMillis / 24 / 60 / 60 / 1000;
     this.duration = Math.round((noOfDays * 1.0) / 30);
+    const newUpdatedDoc = await this.model('Course').findByIdAndUpdate(
+        this._id,
+        { duration: this.duration },
+        { new: true }
+    );
     console.log('Triggered pusher here'.green.bold);
     // console.log(updatedDoc);
     pusher.trigger(channel, 'updated', {
-        updatedDoc,
-    });
-    next();
-});
-CourseSchema.post('findOneAndUpdate', async function (updatedDoc, next) {
-    console.log('Triggered pusher here'.green.bold);
-    // console.log(updatedDoc);
-    pusher.trigger(channel, 'updated', {
-        updatedDoc,
+        newUpdatedDoc,
     });
     next();
 });

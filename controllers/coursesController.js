@@ -110,18 +110,8 @@ const updateCourse = asyncMiddlewareHandler(async (request, response, next) => {
         );
     }
 
-    // Check if current user is course owner or admin
-    if (
-        course.user.toString() !== request.user.id &&
-        request.user.role !== 'admin'
-    ) {
-        return next(
-            new ErrorResponse(
-                'current user is not an admin or owner of this course so cannot update a course',
-                400
-            )
-        );
-    }
+    // No user validations provided because any logged in user can get enrolled to a course
+    // And the needful needs to be updated here.
 
     // Copying new values to be updated to the main course object
     Object.assign(course, request.body);
