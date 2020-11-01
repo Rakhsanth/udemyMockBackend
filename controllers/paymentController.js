@@ -50,7 +50,7 @@ const createOrder = asyncHandler(async (request, response, next) => {
 
 /*
 @description: To capture an order
-@route: GET /api/v1/payments/capture/:paymentId/:amount
+@route: GET /api/v1/payments/capture
 @access: private (User)
 */
 const confirmPayment = asyncHandler(async (request, response, next) => {

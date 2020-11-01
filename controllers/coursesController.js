@@ -262,7 +262,15 @@ const uploadCourseVideo = asyncMiddlewareHandler(
         if (
             request.files.file.mimetype.search(/(mp4|avi|flv|wmv|mov)/i) === -1
         ) {
-            return next(new ErrorResponse('please upload an image file', 400));
+            return next(new ErrorResponse('please upload an video file', 400));
+        }
+
+        const uploadedVideo = request.files.file;
+        const fileLimit = 100 * megabytes;
+        if (uploadedVideo.size > fileLimit) {
+            return next(
+                new ErrorResponse('please upload a video less than 100 MB', 400)
+            );
         }
 
         if (course.video !== 'no-video') {
@@ -273,15 +281,6 @@ const uploadCourseVideo = asyncMiddlewareHandler(
             console.log(`deleting existing video ${filename}`);
             deleteVideoFromBucket(filename);
             console.log('Previous video deleted successfully'.green);
-        }
-
-        const uploadedVideo = request.files.file;
-
-        const fileLimit = 100 * megabytes;
-        if (uploadedVideo.size > fileLimit) {
-            return next(
-                new ErrorResponse('please upload a video less than 100 MB', 400)
-            );
         }
 
         uploadedVideo.name = `courseVideo${course.id}${
