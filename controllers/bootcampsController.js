@@ -5,7 +5,13 @@ const Bootcamp = require('../models/Bootcamp');
 const ErrorResponse = require('../utils/error');
 const asyncMiddlewareHandler = require('../middlewares/asyncMiddlewareHandler');
 const geocoder = require('../utils/geoCoder');
-const { uploadImageToGoogleBucket } = require('../fileUploads/fileUploader');
+const {
+    uploadImageToGoogleBucket,
+    deleteImageFromBucket,
+} = require('../fileUploads/fileUploader');
+
+// global constants
+const megabytes = 1048576;
 
 // @ description : get list of all bootcamps
 // @ route : GET api/v1/bootcamps
@@ -36,14 +42,14 @@ const getBootcamp = asyncMiddlewareHandler(async (request, response, next) => {
 const postBootcamps = asyncMiddlewareHandler(
     async (request, response, next) => {
         // only admin can create multiple bootcamps. Check if user already created a bootcamp and he is admin
-        const existingBootcamp = await Bootcamp.findOne({
+        const existingBootcamps = await Bootcamp.find({
             user: request.user.id,
         });
 
-        if (existingBootcamp && request.user.role !== 'admin') {
+        if (existingBootcamps.length > 5 && request.user.role !== 'admin') {
             return next(
                 new ErrorResponse(
-                    `Current user is not allowed to create multiple bootcamps`,
+                    `Current user cannot have more than 5 bootcamps`,
                     403
                 )
             );
@@ -198,19 +204,33 @@ const uploadBootcampImage = asyncMiddlewareHandler(
             return next(new ErrorResponse('please upload an image file', 400));
         }
 
+        if (bootcamp.photo !== 'no-photo.jpg') {
+            // if already has an image delete that from GCP
+            console.log('has an image already'.yellow);
+            let filename = bootcamp.photo.split('/');
+            filename = filename[filename.length - 1];
+            console.log(`deleting existing image ${filename}`);
+            deleteImageFromBucket(filename);
+            console.log('Previous image deleted successfully'.green);
+        }
+
         const uploadedFile = request.files.file;
 
-        uploadedFile.name = `image_${bootcamp._id}${
+        const fileLimit = 5 * megabytes;
+        if (uploadedFile.size > fileLimit) {
+            return next(
+                new ErrorResponse('please upload an image less than 5 MB', 400)
+            );
+        }
+
+        uploadedFile.name = `bootcampImage_new${bootcamp._id}${
             path.parse(uploadedFile.name).ext
         }`;
 
         console.log('logging file uploaded'.cyan.inverse);
         console.log(uploadedFile);
 
-        const bootcampImageURL = await uploadImageToGoogleBucket(
-            request.files.file,
-            bootcamp._id
-        );
+        const bootcampImageURL = await uploadImageToGoogleBucket(uploadedFile);
         if (!bootcampImageURL) {
             return next(
                 new ErrorResponse(

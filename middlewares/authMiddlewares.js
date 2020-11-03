@@ -15,7 +15,7 @@ const protected = asyncMiddlewareHandler(async (request, response, next) => {
     } else if (request.cookies) {
         token = request.cookies.token;
     }
-
+    console.log(token);
     if (!token) {
         return next(
             new ErrorResponse('not authorized to access this route', 401)
@@ -27,6 +27,7 @@ const protected = asyncMiddlewareHandler(async (request, response, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log(decoded);
         request.user = await User.findById(decoded.id);
+        console.log(request.user);
         next();
     } catch (err) {
         console.log(err);

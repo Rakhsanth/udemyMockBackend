@@ -5,6 +5,7 @@ const errorHandler = (err, request, response, next) => {
     error.message = err.message;
     console.log('error is printed now for dev purpose'.red.bold);
     console.log(error);
+    console.log(`${error.message}`.red.inverse);
 
     console.log(err.name);
     if (err.name === 'CastError') {

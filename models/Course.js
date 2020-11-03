@@ -1,4 +1,15 @@
 const mongoose = require('mongoose');
+const Pusher = require('pusher');
+
+// Pusher related stuff
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,
+    key: process.env.PUSHER_KEY,
+    secret: process.env.PUSHER_SECRET,
+    cluster: process.env.PUSHER_CLUSTER,
+    useTLS: true,
+});
+const channel = 'courses';
 
 const CourseSchema = new mongoose.Schema({
     title: {
@@ -11,13 +22,43 @@ const CourseSchema = new mongoose.Schema({
         maxlength: [500, 'Should not exceed 500 characters'],
         required: [true, 'Must add a short or brief description'],
     },
+    author: {
+        type: String,
+        default: 'Bootcamp people',
+    },
     contentList: {
         type: [String],
         // Required cannot be given for arrays so did in pre save middleware
     },
-    weeks: {
+    category: {
+        type: String,
+        required: [true, 'please provide a category for the course'],
+        enum: [
+            'development',
+            'design',
+            'data science',
+            'digital marketing',
+            'finance',
+        ],
+    },
+    startDate: {
+        type: Date,
+        required: [true, 'Please provide a starting date for the course'],
+    },
+    endDate: {
+        type: Date,
+        required: [true, 'Please provide an end date for the course'],
+    },
+    maxStudentsAllowed: {
         type: Number,
-        required: [true, 'please add course length in number of weeks'],
+        required: [
+            true,
+            'Please provide the maximum no of students for this course',
+        ],
+    },
+    currentStudentsCount: {
+        type: Number,
+        default: 0,
     },
     cost: {
         type: Number,
@@ -32,9 +73,17 @@ const CourseSchema = new mongoose.Schema({
         enum: ['beginner', 'intermediate', 'advanced'],
         required: [true, 'please select a skill set'],
     },
+    duration: {
+        type: Number,
+        default: 0,
+    },
     picture: {
         type: String,
         default: 'no-photo.jpg',
+    },
+    video: {
+        type: String,
+        default: 'no-video',
     },
     bootcamp: {
         type: mongoose.Schema.ObjectId,
@@ -45,6 +94,16 @@ const CourseSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         required: [true, 'must have associated user'],
         ref: 'User',
+    },
+    averageRating: {
+        type: Number,
+        default: 1,
+        min: [1, 'Average rating cannot be below 1'],
+        max: [5, 'average rating cannot exceed 5'],
+    },
+    ratings: {
+        type: Number,
+        default: 0,
     },
     createdAt: {
         type: Date,
@@ -67,6 +126,23 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
         console.log(err);
     }
 };
+CourseSchema.statics.setCourseDuration = async function (course) {
+    try {
+        const intervalInMillis =
+            course.endDate.getTime() - course.startDate.getTime();
+        const noOfDays = intervalInMillis / 24 / 60 / 60 / 1000;
+        const duration = Math.round((noOfDays * 1.0) / 30);
+        const updatedCourse = await this.findByIdAndUpdate(
+            course.id,
+            { duration: duration },
+            { new: true }
+        );
+        console.log(updatedCourse);
+        return updatedCourse;
+    } catch (err) {
+        console.log(err);
+    }
+};
 
 CourseSchema.pre('save', async function (next) {
     if (this.contentList.length === 0) {
@@ -80,10 +156,26 @@ CourseSchema.pre('save', async function (next) {
             throw new Error('Each content cannot exceed 100 characters');
         }
     });
+    if (this.endDate < this.startDate) {
+        throw new Error('Course end date cannot be less than start date');
+    }
     next();
 });
-CourseSchema.post('save', async function (dummyDoc, next) {
+CourseSchema.post('save', async function (updatedDoc, next) {
     await this.constructor.getAverageCost(this.bootcamp);
+    const intervalInMillis = this.endDate.getTime() - this.startDate.getTime();
+    const noOfDays = intervalInMillis / 24 / 60 / 60 / 1000;
+    this.duration = Math.round((noOfDays * 1.0) / 30);
+    const newUpdatedDoc = await this.model('Course').findByIdAndUpdate(
+        this._id,
+        { duration: this.duration },
+        { new: true }
+    );
+    console.log('Triggered pusher here'.green.bold);
+    // console.log(updatedDoc);
+    pusher.trigger(channel, 'updated', {
+        newUpdatedDoc,
+    });
     next();
 });
 CourseSchema.pre('remove', async function (next) {

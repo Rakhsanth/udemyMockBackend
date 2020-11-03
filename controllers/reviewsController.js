@@ -3,6 +3,7 @@
 const ErrorResponse = require('../utils/error');
 const asyncMiddlewareHandler = require('../middlewares/asyncMiddlewareHandler');
 const Bootcamp = require('../models/Bootcamp');
+const Course = require('../models/Course');
 const User = require('../models/User');
 const Review = require('../models/Review');
 
@@ -11,19 +12,7 @@ const Review = require('../models/Review');
 // @ route : GET api/v1/bootcamps/:bootcampId/reviews
 // @ access : public
 const getReviews = asyncMiddlewareHandler(async (request, response, next) => {
-    if (request.params.bootcampId) {
-        const reviews = await Review.find({
-            bootcamp: request.params.bootcampId,
-        });
-        response.status(200).json({
-            success: true,
-            count: reviews.length,
-            data: reviews,
-            error: false,
-        });
-    } else {
-        response.status(200).json(response.advancedResults); // This advancedResults is passed as middleware
-    }
+    response.status(200).json(response.advancedReviewResults); // This advancedResults is passed as middleware
 });
 // @ description : get a single review
 // @ route : GET api/v1/reviews/:id
@@ -48,20 +37,32 @@ const getReview = asyncMiddlewareHandler(async (request, response, next) => {
         error: false,
     });
 });
-// @ description : add a review
+// @ description : add a review to bootcamp
 // @ route : POST api/v1/bootcamps/:bootcampId/reviews
+//                      or
+// @ route : POST api/v1/courses/:courseId/reviews
 // @ access : private/user
 const addReview = asyncMiddlewareHandler(async (request, response, next) => {
     const bootcamp = await Bootcamp.findById(request.params.bootcampId);
+    const course = await Course.findById(request.params.courseId);
 
-    if (!bootcamp) {
-        return next(new ErrorResponse(`No such bootcamp exists`, 400));
+    if (!bootcamp && !course) {
+        return next(new ErrorResponse(`No such bootcamp or course exist`, 400));
     }
 
-    // Associate logged in user and bootcamp to this review
-    request.body.bootcamp = request.params.bootcampId;
-    // This is comming from the protected middleware
-    request.body.user = request.user.id;
+    if (bootcamp) {
+        // Associate logged in user and bootcamp/course to this review
+        request.body.bootcamp = request.params.bootcampId;
+        // This is comming from the protected middleware
+        request.body.user = request.user.id;
+    }
+
+    if (course) {
+        // Associate logged in user and bootcamp/course to this review
+        request.body.course = request.params.courseId;
+        // This is comming from the protected middleware
+        request.body.user = request.user.id;
+    }
 
     const review = await Review.create(request.body);
 
@@ -75,22 +76,25 @@ const addReview = asyncMiddlewareHandler(async (request, response, next) => {
 // @ route : PUT api/v1/reviews/:id
 // @ access : private/user
 const updateReview = asyncMiddlewareHandler(async (request, response, next) => {
-    let review = await Review.findById(request.params.id);
+    const { title, review, rating } = request.body;
 
-    if (!review) {
+    let userReview = await Review.findById(request.params.id);
+
+    if (!userReview) {
         return next(new ErrorResponse(`No such review exists`, 401));
     }
 
-    if (review.user.toString() !== request.user.id) {
+    if (userReview.user.toString() !== request.user.id) {
         return next(
             new ErrorResponse(`Not autorized to edit this review`, 401)
         );
     }
 
-    review = await Review.findByIdAndUpdate(request.params.id, request.body, {
-        new: true,
-        runValidators: true,
-    });
+    userReview.title = title;
+    userReview.review = review;
+    userReview.rating = rating;
+
+    await userReview.save();
 
     response.status(200).json({
         success: true,

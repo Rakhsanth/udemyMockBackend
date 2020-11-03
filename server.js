@@ -21,8 +21,12 @@ const courseRoutes = require('./routes/courses');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const reviewsRoutes = require('./routes/reviews');
+const paymentRoutes = require('./routes/payment');
+const profileRoutes = require('./routes/profiles');
 const connectDB = require('./config/db');
 const mongoErrorHandler = require('./middlewares/mongoErrorHandler');
+// Models
+const Course = require('./models/Course');
 
 // configuring environment variables (for process.env using dotenv module)
 dotenv.config({
@@ -56,21 +60,23 @@ app.use(preventXSS()); // to prevent XSS
 
 // API rate limiting
 const rateLimiter = expressRateLimit({
-    windowMs: 1 * 60 * 1000, // For 15 minutes
-    max: 3,
+    windowMs: 1 * 60 * 1000, // For 1 minute
+    max: process.env.API_LIMIT,
     message: 'exceeded the API limit. Please try after few minutes.',
 });
 app.use(rateLimiter); // Plugging in the rate limiter
 
 app.use(hpp()); // prevent http parameter pollution
 
-app.use(cors()); // Enable CORS (Cross Origin Resource Sharing)
+app.use(cors({ credentials: true, origin: ['http://localhost:3000'] })); // Enable CORS (Cross Origin Resource Sharing)
 
 app.use('/api/v1/bootcamps', bootcampRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
+app.use('/api/v1/payment', paymentRoutes);
+app.use('/api/v1/profiles', profileRoutes);
 // error handling middleware. This recieves the next() from the above router middleware.
 app.use(mongoErrorHandler);
 

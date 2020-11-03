@@ -1,10 +1,14 @@
-const advancedResults = (model, populate) => {
+const Course = require('../models/Course');
+const ErrorResponse = require('../utils/error');
+
+const advancedResults = (model, modelType, populate) => {
     return async (request, response, next) => {
         let query;
+        let bootcampIds = [];
 
         const reqQuery = { ...request.query };
 
-        const objectsToRemoveFromQuery = ['select', 'sort', 'page'];
+        const objectsToRemoveFromQuery = ['select', 'sort', 'page', 'limit'];
         // This removal is done for query formatting to get rid of slect and such words which are not part of the model.
         objectsToRemoveFromQuery.forEach(
             (eachObject) => delete reqQuery[eachObject] // here reqQuery.eachObject didnot work
@@ -14,16 +18,54 @@ const advancedResults = (model, populate) => {
         let queryString = JSON.stringify(reqQuery);
         // If any of these are found just add a $ symbol before it so that it becomes a mongo query.
         queryString = queryString.replace(
-            /\b(lte|lt|gte|gt|in)\b/g,
+            /\b(lte|lt|gte|gt|in|eq)\b/g,
             (match) => `$${match}`
         );
-        query = model.find(JSON.parse(queryString)); //.populate({
+
+        const queryObject = JSON.parse(queryString);
+
+        if (queryObject.duration !== undefined) {
+            console.log(queryObject.duration);
+            if (Array.isArray(queryObject.duration.$lte)) {
+                queryObject.duration.$lte = Math.max(
+                    ...queryObject.duration.$lte
+                );
+            }
+            if (Array.isArray(queryObject.duration.$gte)) {
+                queryObject.duration.$gte = Math.min(
+                    ...queryObject.duration.$gte
+                );
+            }
+            console.log(queryObject.duration);
+        }
+
+        console.log(queryObject);
+
+        if (request.params.category) {
+            if (modelType === 'bootcamp') {
+                const courses = await Course.find({
+                    category: request.params.category,
+                });
+                bootcampIds = courses.map((course) => course.bootcamp);
+                console.log(bootcampIds);
+                queryObject._id = { $in: bootcampIds };
+            }
+            if (modelType === 'course') {
+                queryObject.category = { $eq: request.params.category };
+            }
+        }
+
+        console.log(queryObject);
+        query = model.find(queryObject);
+
+        // query = query.find({ id: { $in: bootcampIds } });
+
+        //.populate({
         // path: 'courses', // This will not work until virtuals are used. because, the course doesnot have a ref to this bootcamp model
         // // select: 'title',   // Can add selects in case of reverse population using virtuals also
         // populate, // This is passed for reusability
         // });
         // To use above populate for resusing we may need to check if the populate is passed or not.
-
         if (populate) {
             query = query.populate(populate); // Populate is created in controller and passed accordingly
         }
@@ -44,15 +86,26 @@ const advancedResults = (model, populate) => {
             next: null,
         };
         let pageNumber = Number(request.query.page) || 1;
-        let limit = 2;
+        let limit = Number(request.query.limit) || 5;
+        console.log(`limit : ${limit}`.yellow);
         let toSkip = (pageNumber - 1) * limit;
         let startIndex = (pageNumber - 1) * limit;
         let endIndex = pageNumber * limit;
 
-        const tempResult = await query;
+        let tempResult = await query;
+        console.log(`result length before page : ${tempResult.length}`.yellow);
+        if (tempResult.length === 0) {
+            return next(
+                new ErrorResponse(
+                    'No results found for the current filter',
+                    404
+                )
+            );
+        }
+
         query = query.skip(toSkip).limit(limit);
 
-        const results = await query;
+        let results = await query;
 
         const totalNoOfDocuments = tempResult.length;
         if (startIndex > 0) {
@@ -66,9 +119,18 @@ const advancedResults = (model, populate) => {
             return next(err);
         }
 
+        if (results.length === 0) {
+            return next(
+                new ErrorResponse(
+                    'No results found for the current filter',
+                    404
+                )
+            );
+        }
+
         response.advancedResults = {
             success: true,
-            count: results.length,
+            count: tempResult.length,
             pagination,
             data: results,
             error: false,

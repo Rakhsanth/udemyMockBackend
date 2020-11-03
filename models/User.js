@@ -6,8 +6,8 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
-    thrirdParty: {
-        type: String,
+    thirdParty: {
+        type: Boolean,
         required: [true, 'Type of user is mandatory'],
     },
     name: {
@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'publisher'],
+        enum: ['user', 'publisher', 'admin'],
         default: 'user',
     },
     password: {
@@ -35,6 +35,8 @@ const UserSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    currentCourses: [],
+    completedCourses: [],
     createdAt: {
         type: Date,
         default: Date.now(),
@@ -77,5 +79,10 @@ UserSchema.methods.getResetToken = function () {
     this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
     return resetToken;
 };
+
+UserSchema.pre('remove', async function (next) {
+    await this.model('Profile').deleteMany({ user: this.id });
+    next();
+});
 
 module.exports = mongoose.model('User', UserSchema);
