@@ -8,7 +8,13 @@ const advancedResults = (model, modelType, populate) => {
 
         const reqQuery = { ...request.query };
 
-        const objectsToRemoveFromQuery = ['select', 'sort', 'page', 'limit'];
+        const objectsToRemoveFromQuery = [
+            'select',
+            'sort',
+            'page',
+            'limit',
+            'populate',
+        ];
         // This removal is done for query formatting to get rid of slect and such words which are not part of the model.
         objectsToRemoveFromQuery.forEach(
             (eachObject) => delete reqQuery[eachObject] // here reqQuery.eachObject didnot work
@@ -66,7 +72,12 @@ const advancedResults = (model, modelType, populate) => {
         // populate, // This is passed for reusability
         // });
         // To use above populate for resusing we may need to check if the populate is passed or not.
-        if (populate) {
+        // console.log(`${request.query.populate}`.green.inverse);
+        if (
+            populate &&
+            (request.query.populate === 'true' ||
+                request.query.populate === undefined)
+        ) {
             query = query.populate(populate); // Populate is created in controller and passed accordingly
         }
 
@@ -87,7 +98,6 @@ const advancedResults = (model, modelType, populate) => {
         };
         let pageNumber = Number(request.query.page) || 1;
         let limit = Number(request.query.limit) || 5;
-        console.log(`limit : ${limit}`.yellow);
         let toSkip = (pageNumber - 1) * limit;
         let startIndex = (pageNumber - 1) * limit;
         let endIndex = pageNumber * limit;
@@ -103,7 +113,15 @@ const advancedResults = (model, modelType, populate) => {
             );
         }
 
-        query = query.skip(toSkip).limit(limit);
+        console.log(request.query.limit);
+
+        if (request.query.limit === 'all') {
+            limit = -1;
+            query = query.skip(toSkip).limit();
+        } else {
+            query = query.skip(toSkip).limit(limit);
+        }
+        console.log(`limit : ${limit}`.yellow);
 
         let results = await query;
 

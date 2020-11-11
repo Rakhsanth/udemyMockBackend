@@ -121,6 +121,27 @@ const BootcampSchema = new mongoose.Schema(
     }
 );
 
+BootcampSchema.methods.updateGeoLocation = async function () {
+    console.log('logging this from geoCode method'.yellow.bold);
+    console.log(this);
+    let location = await geocoder.geocode(this.zipcode);
+    location = location[0];
+    this.location = {
+        type: 'Point',
+        coordinates: [location.longitude, location.latitude],
+        formattedAddress: location.formattedAddress,
+        street: location.streetName,
+        city: location.city,
+        state: location.statecode,
+        country: location.country,
+        zipCode: location.zipcode,
+    };
+    const updatedDoc = await mongoose
+        .model('Bootcamp')
+        .findByIdAndUpdate(this._id, this, { new: true, runValidators: true });
+    return updatedDoc;
+};
+
 BootcampSchema.pre('save', function (next) {
     // Mongoose tells thet here no arrow function to be used
     if (this.offerings.length < 2) {

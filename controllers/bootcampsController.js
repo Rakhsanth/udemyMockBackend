@@ -99,6 +99,12 @@ const putBootcamp = asyncMiddlewareHandler(async (request, response, next) => {
         }
     );
 
+    if (request.body.zipcode) {
+        bootcamp = await bootcamp.updateGeoLocation();
+        console.log('logging updated bootcamp'.yellow.inverse);
+        console.log(bootcamp);
+    }
+
     response.status(201).json({
         success: true,
         data: bootcamp,
