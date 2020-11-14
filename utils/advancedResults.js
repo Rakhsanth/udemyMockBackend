@@ -146,6 +146,9 @@ const advancedResults = (model, modelType, populate) => {
             );
         }
 
+        // console.log('Logging result of current query filters'.yellow.inverse);
+        // console.log(results);
+
         response.advancedResults = {
             success: true,
             count: tempResult.length,

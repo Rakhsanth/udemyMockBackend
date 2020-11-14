@@ -7,6 +7,8 @@ const {
     createProfile,
     updateProfile,
     deleteProfile,
+    addNotification,
+    removeNotification,
 } = require('../controllers/profileController');
 const { protected, roleAuthorize } = require('../middlewares/authMiddlewares');
 const advancedResults = require('../utils/advancedResults');
@@ -22,11 +24,7 @@ const router = express.Router();
 
 router
     .route('/')
-    .get(
-        protected,
-        roleAuthorize('admin'),
-        advancedResults(Profile, 'profile', populate)
-    )
+    .get(protected, advancedResults(Profile, 'profile', populate), getProfiles)
     .post(
         protected,
         roleAuthorize('user', 'publisher', 'admin'),
@@ -41,5 +39,10 @@ router
         roleAuthorize('user', 'publisher', 'admin'),
         deleteProfile
     );
+
+router.route('/notifications/:userId').post(protected, addNotification);
+router
+    .route('/notifications/:userId/:notificationId')
+    .delete(protected, removeNotification);
 
 module.exports = router;
