@@ -9,6 +9,8 @@ const {
     deleteProfile,
     addNotification,
     removeNotification,
+    profilePictureUpload,
+    profileFileUpload,
 } = require('../controllers/profileController');
 const { protected, roleAuthorize } = require('../middlewares/authMiddlewares');
 const advancedResults = require('../utils/advancedResults');
@@ -44,5 +46,7 @@ router.route('/notifications/:userId').post(protected, addNotification);
 router
     .route('/notifications/:userId/:notificationId')
     .delete(protected, removeNotification);
+router.route('/image/:profileId').put(protected, profilePictureUpload);
+router.route('/file/:profileId').put(protected, profileFileUpload);
 
 module.exports = router;

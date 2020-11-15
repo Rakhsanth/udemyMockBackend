@@ -1,3 +1,5 @@
+// core modules
+const path = require('path');
 // 3rd party modules
 const Pusher = require('pusher');
 // custom modules
@@ -5,6 +7,10 @@ const User = require('../models/User');
 const Profile = require('../models/Profile');
 const ErrorResponse = require('../utils/error');
 const asyncMiddlewareHandler = require('../middlewares/asyncMiddlewareHandler');
+const {
+    uploadImageToGoogleBucket,
+    deleteImageFromBucket,
+} = require('../fileUploads/fileUploader');
 
 // Pusher related stuff
 const pusher = new Pusher({
@@ -15,6 +21,9 @@ const pusher = new Pusher({
     useTLS: true,
 });
 const channel = 'notifications';
+
+// global constants
+const megabytes = 1048576;
 
 // @ description : Get all profiles
 // @ route : GET api/v1/profiles
@@ -244,6 +253,176 @@ const removeNotification = asyncMiddlewareHandler(
     }
 );
 
+// @ description : Upload an image to a profile
+// @ route : PUT api/v1/profiles/image/:profileId
+// @ access : (User or publisher needs to be logged in) || admin
+const profilePictureUpload = asyncMiddlewareHandler(
+    async (request, response, next) => {
+        const profile = await Profile.findById(request.params.profileId);
+        if (!profile) {
+            return next(
+                new ErrorResponse(
+                    'resource cant be deleted as it doesnot exist',
+                    400
+                )
+            );
+        }
+
+        if (
+            profile.user.toString() !== request.user.id &&
+            request.user.role !== 'admin'
+        ) {
+            return next(
+                new ErrorResponse(
+                    'User is not an admin or owner of this profile',
+                    400
+                )
+            );
+        }
+
+        if (!request.files) {
+            return next(new ErrorResponse('please upload a file', 400));
+        }
+        if (request.files.file.mimetype.search(/(jpg|jpeg|png)/i) === -1) {
+            return next(new ErrorResponse('please upload an image file', 400));
+        }
+
+        if (profile.picture !== 'no-photo.jpg') {
+            // if already has an image delete that from GCP
+            console.log('has an image already'.yellow);
+            let filename = profile.picture.split('/');
+            filename = filename[filename.length - 1];
+            console.log(`deleting existing image ${filename}`);
+            deleteImageFromBucket(filename);
+            console.log('Previous image deleted successfully'.green);
+        }
+
+        const uploadedFile = request.files.file;
+
+        const fileLimit = 5 * megabytes;
+        if (uploadedFile.size > fileLimit) {
+            return next(
+                new ErrorResponse('please upload an image less than 5 MB', 400)
+            );
+        }
+
+        uploadedFile.name = `profileImage_${profile._id}${
+            path.parse(uploadedFile.name).ext
+        }`;
+
+        console.log('logging file uploaded'.cyan.inverse);
+        console.log(uploadedFile);
+
+        const profileImageURL = await uploadImageToGoogleBucket(uploadedFile);
+        if (!profileImageURL) {
+            return next(
+                new ErrorResponse(
+                    'problem with the cloud storage, please try again after some time',
+                    500
+                )
+            );
+        }
+
+        await Profile.findByIdAndUpdate(profile._id, {
+            picture: profileImageURL,
+        });
+
+        response.status(201).json({
+            success: true,
+            data: {
+                message: 'successfully uploaded',
+                imageURL: `${profileImageURL}`,
+            },
+            error: false,
+        });
+    }
+);
+// @ description : Upload document for a profile
+// @ route : PUT api/v1/profiles/file/:profileId
+// @ access : (User or publisher needs to be logged in) || admin
+const profileFileUpload = asyncMiddlewareHandler(
+    async (request, response, next) => {
+        const profile = await Profile.findById(request.params.profileId);
+        if (!profile) {
+            return next(
+                new ErrorResponse(
+                    'resource cant be deleted as it doesnot exist',
+                    400
+                )
+            );
+        }
+
+        if (
+            profile.user.toString() !== request.user.id &&
+            request.user.role !== 'admin'
+        ) {
+            return next(
+                new ErrorResponse(
+                    'User is not an admin or owner of this profile',
+                    400
+                )
+            );
+        }
+
+        if (!request.files) {
+            return next(new ErrorResponse('please upload a file', 400));
+        }
+        // |pdf|doc|docs|docx
+        if (request.files.file.mimetype.search(/(pdf)/i) === -1) {
+            return next(new ErrorResponse('please upload an image file', 400));
+        }
+
+        if (profile.resume) {
+            // if already has an image delete that from GCP
+            console.log('has a file already'.yellow);
+            let filename = profile.resume.split('/');
+            filename = filename[filename.length - 1];
+            console.log(`deleting existing file ${filename}`);
+            deleteImageFromBucket(filename);
+            console.log('Previous file deleted successfully'.green);
+        }
+
+        const uploadedFile = request.files.file;
+
+        const fileLimit = 5 * megabytes;
+        if (uploadedFile.size > fileLimit) {
+            return next(
+                new ErrorResponse('please upload a file less than 5 MB', 400)
+            );
+        }
+
+        uploadedFile.name = `profileFile_${profile._id}${
+            path.parse(uploadedFile.name).ext
+        }`;
+
+        console.log('logging file uploaded'.cyan.inverse);
+        console.log(uploadedFile);
+
+        const profileFileURL = await uploadImageToGoogleBucket(uploadedFile);
+        if (!profileFileURL) {
+            return next(
+                new ErrorResponse(
+                    'problem with the cloud storage, please try again after some time',
+                    500
+                )
+            );
+        }
+
+        await Profile.findByIdAndUpdate(profile._id, {
+            resume: profileFileURL,
+        });
+
+        response.status(201).json({
+            success: true,
+            data: {
+                message: 'successfully uploaded',
+                imageURL: `${profileFileURL}`,
+            },
+            error: false,
+        });
+    }
+);
+
 module.exports = {
     getProfiles,
     getProfile,
@@ -252,4 +431,6 @@ module.exports = {
     deleteProfile,
     addNotification,
     removeNotification,
+    profilePictureUpload,
+    profileFileUpload,
 };

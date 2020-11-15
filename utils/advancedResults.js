@@ -140,7 +140,7 @@ const advancedResults = (model, modelType, populate) => {
         if (results.length === 0) {
             return next(
                 new ErrorResponse(
-                    'No results found for the current filter',
+                    'Zero results found for the current filter',
                     404
                 )
             );

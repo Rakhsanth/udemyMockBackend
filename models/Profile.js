@@ -30,7 +30,10 @@ const profileSchema = new mongoose.Schema({
         ],
         default: [],
     },
-    picture: String,
+    picture: {
+        type: String,
+        default: 'no-photo.jpg',
+    },
     name: {
         type: String,
         required: [true, 'Name is required for a profile'],
