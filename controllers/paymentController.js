@@ -4,6 +4,7 @@ const Razorpay = require('razorpay');
 // core modules
 const crypto = require('crypto');
 // custom modules
+const mailer = require('../utils/mailer');
 const asyncHandler = require('../middlewares/asyncMiddlewareHandler');
 const ErrorResponse = require('../utils/error');
 
@@ -59,7 +60,12 @@ const confirmPayment = asyncHandler(async (request, response, next) => {
         razorpay_payment_id,
         razorpay_order_id,
         razorpay_signature,
+        toEmails,
+        courseTitles,
+        userEmail,
     } = request.body;
+
+    console.log(toEmails);
 
     const hmac = crypto.createHmac('sha256', process.env.RAZOR_PAY_KEY_SECRET);
     hmac.update(`${order_id}|${razorpay_payment_id}`);
@@ -75,6 +81,24 @@ const confirmPayment = asyncHandler(async (request, response, next) => {
                 401
             )
         );
+    }
+
+    // Sending email confirmation after successful payment for user and the course owners
+    const mailParams = {
+        mailSubject: 'Course Successfully Enrolled',
+        mailContent: `<div>
+        <h5>You have successfully enrolled to the following Courses : ${courseTitles}</h5>`,
+        userEmail: userEmail,
+    };
+    await mailer(mailParams);
+
+    for (const email of toEmails) {
+        const mailParams = {
+            mailSubject: 'Course Successfully Enrolled',
+            mailContent: `<h5>A user has successfully enrolled to your course`,
+            userEmail: email,
+        };
+        await mailer(mailParams);
     }
 
     response.status(200).json({

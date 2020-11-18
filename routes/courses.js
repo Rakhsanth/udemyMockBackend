@@ -16,10 +16,10 @@ const { protected, roleAuthorize } = require('../middlewares/authMiddlewares');
 const reviewRouter = require('./reviews');
 
 // Contructing populate for reusable advancedResults middleware
-const populate = {
-    path: 'bootcamp',
-    select: 'name',
-};
+const populate = [
+    { path: 'bootcamp', select: 'name' },
+    { path: 'user', select: 'email' },
+];
 
 // This is needed as we get url re-routing from bootcamps router
 const router = express.Router({ mergeParams: true });
