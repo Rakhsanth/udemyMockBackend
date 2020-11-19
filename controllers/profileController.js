@@ -211,7 +211,7 @@ const addNotification = asyncMiddlewareHandler(
 );
 
 // @ description : Add a notification using user ID
-// @ route : DELETE api/v1/profiles/notification/:userId/:notificationId
+// @ route : DELETE api/v1/profiles/notifications/:userId/:notificationId
 // @ access : frontend flow will decide (User needs to be logged in)
 const removeNotification = asyncMiddlewareHandler(
     async (request, response, next) => {
