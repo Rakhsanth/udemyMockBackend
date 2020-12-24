@@ -20,7 +20,12 @@ const advancedResultsReviews = (populate) => {
         const queryObject = JSON.parse(queryString);
 
         if (!request.params.bootcampId && !request.params.courseId) {
-            return next(new ErrorRespnse());
+            return next(
+                new ErrorRespnse(
+                    'specify the rating type as either course or bootcamp',
+                    400
+                )
+            );
         } else {
             const bootcampOrCourseId =
                 request.params.bootcampId || request.params.courseId;

@@ -64,6 +64,9 @@ const CourseSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'please add the tuition cost'],
     },
+    basicRequirements: {
+        type: [String],
+    },
     requirementDescription: {
         type: String,
         required: [true, 'please describe the skills needed'],
@@ -159,6 +162,16 @@ CourseSchema.pre('save', async function (next) {
     if (this.endDate < this.startDate) {
         throw new Error('Course end date cannot be less than start date');
     }
+    if (this.basicRequirements.length === 0) {
+        throw new Error(
+            'please provide list of basic requirements needed for the user for this course'
+        );
+    }
+    this.basicRequirements.forEach((content) => {
+        if (content.length > length) {
+            throw new Error('Each content cannot exceed 100 characters');
+        }
+    });
     next();
 });
 CourseSchema.post('save', async function (updatedDoc, next) {

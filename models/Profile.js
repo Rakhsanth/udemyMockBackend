@@ -60,6 +60,37 @@ const profileSchema = new mongoose.Schema({
             'Mobile number cannot have characters or numbers lss than 10 digits',
         ],
     },
+    state: {
+        type: String,
+    },
+    zipcode: {
+        type: Number,
+    },
+    enrolledCourses: {
+        type: [
+            {
+                courseId: {
+                    type: mongoose.Schema.ObjectId,
+                    required: [
+                        true,
+                        'Course needs to be associated with its ID',
+                    ],
+                },
+                title: {
+                    type: String,
+                    required: [true, 'Each course notification needs a title'],
+                },
+                description: {
+                    type: String,
+                    required: [
+                        true,
+                        'Each course notification needs a description',
+                    ],
+                },
+            },
+        ],
+        default: [],
+    },
 });
 
 // profileSchema.pre('save', async function (next) {

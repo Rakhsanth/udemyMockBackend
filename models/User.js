@@ -10,6 +10,10 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         required: [true, 'Type of user is mandatory'],
     },
+    thirdPartyId: {
+        type: String,
+        // required if thirdParty is true
+    },
     name: {
         type: String,
         required: [true, 'name is mandatory'],
@@ -21,7 +25,7 @@ const UserSchema = new mongoose.Schema({
             /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
             'must be a valid email address',
         ],
-        required: [true, 'email is mandatory'],
+        // Required validation provided based on 3rd party login/signup
     },
     role: {
         type: String,
@@ -43,10 +47,16 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
-// 3rd party users do not need a password.
+// 3rd party users do not need a password or email.
+UserSchema.path('thirdPartyId').required(function () {
+    return this.thirdParty;
+}, 'thirdPartyId is mandatory for thirdParty signed up in users');
+UserSchema.path('email').required(function () {
+    return !this.thrirdParty;
+}, 'email is mandatory for no 3rd party users');
 UserSchema.path('password').required(function () {
     return !this.thrirdParty;
-});
+}, 'password is mandatory for no 3rd party users');
 
 UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
