@@ -114,6 +114,8 @@ const CourseSchema = new mongoose.Schema({
     },
 });
 
+CourseSchema.index({ title: 'text', description: 'text' });
+
 CourseSchema.statics.getAverageCost = async function (bootcampId) {
     const aggregateObj = await this.aggregate([
         { $match: { bootcamp: bootcampId } }, // match and group are part of mongo aggregate stages. Refer docs of MongoDB

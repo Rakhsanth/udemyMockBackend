@@ -12,6 +12,7 @@ const hpp = require('hpp');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const colors = require('colors');
+const errorHandler = require('errorhandler');
 //core modules
 const path = require('path');
 //custom modules
@@ -38,6 +39,8 @@ connectDB();
 
 const app = express();
 
+// ...
+app.use(errorHandler({ dumpExceptions: true, showStack: true }));
 // Using the body parser from express to parse the body from request without that chunk and buffer thing.
 app.use(express.json()); // I think it has the next method so that this can pass to all middlewares
 
@@ -93,6 +96,14 @@ const server = app.listen(PORT, () => {
 process.on('unhandledRejection', (error, promise) => {
     console.log(`Error: ${error.message}`.red);
     // close server and exit the process.
+    server.close(() => {
+        // To make our app crash when some promises fail by logging the promise errors
+        process.exit(1);
+    });
+});
+
+process.on('uncaughtException', function (exception, promise) {
+    console.log(exception);
     server.close(() => {
         // To make our app crash when some promises fail by logging the promise errors
         process.exit(1);

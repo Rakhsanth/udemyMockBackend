@@ -29,7 +29,14 @@ const getCurrentUser = asyncMiddlewareHandler(
 const userRegister = asyncMiddlewareHandler(async (request, response, next) => {
     const { thirdParty, name, email, password, role } = request.body;
 
-    const user = await User.create({ thirdParty, name, email, password, role });
+    const user = await User.create({
+        thirdParty,
+        thirdPartyId,
+        name,
+        email,
+        password,
+        role,
+    });
     // as we have added a method similar to statics. this thing will give the generated jwt.
     // const token = user.getSignedJwtToken();
     // response.status(200).json({ success: true, token });
@@ -41,23 +48,34 @@ const userRegister = asyncMiddlewareHandler(async (request, response, next) => {
 // @ route : POST api/v1/auth/login
 // @ access : public
 const userLogin = asyncMiddlewareHandler(async (request, response, next) => {
-    const { email, password } = request.body;
+    const { thirdParty, thirdPartyId, email, password } = request.body;
+    let user;
 
-    if (!email || !password) {
-        return next(new ErrorResponse('please enter the credentials', 401));
-    }
-    // This should be email: email(email from request)
-    // + is used because we have coded as should not be able to select by default in the model.
-    const user = await User.findOne({ email }).select('+password');
+    if (thirdParty) {
+        user = await User.findOne({ thirdPartyId });
+        if (!user) {
+            await User.create(request.body);
+            user = await User.findOne({ thirdPartyId });
+        }
+        console.log('logging user to test 3rd party stuff'.yellow.inverse);
+        console.log(user);
+    } else {
+        if (!email || !password) {
+            return next(new ErrorResponse('please enter the credentials', 401));
+        }
+        // This should be email: email(email from request)
+        // + is used because we have coded as should not be able to select by default in the model.
+        user = await User.findOne({ email }).select('+password');
 
-    if (!user) {
-        return next(new ErrorResponse('invalid credential: email', 401));
-    }
+        if (!user) {
+            return next(new ErrorResponse('invalid credential: email', 401));
+        }
 
-    const isMatching = await user.comparePassword(password);
+        const isMatching = await user.comparePassword(password);
 
-    if (!isMatching) {
-        return next(new ErrorResponse('invalid credential: password', 401));
+        if (!isMatching) {
+            return next(new ErrorResponse('invalid credential: password', 401));
+        }
     }
 
     // response.status(200).json({ success: true, token });

@@ -52,10 +52,10 @@ UserSchema.path('thirdPartyId').required(function () {
     return this.thirdParty;
 }, 'thirdPartyId is mandatory for thirdParty signed up in users');
 UserSchema.path('email').required(function () {
-    return !this.thrirdParty;
+    return !this.thirdParty;
 }, 'email is mandatory for no 3rd party users');
 UserSchema.path('password').required(function () {
-    return !this.thrirdParty;
+    return !this.thirdParty;
 }, 'password is mandatory for no 3rd party users');
 
 UserSchema.pre('save', async function (next) {

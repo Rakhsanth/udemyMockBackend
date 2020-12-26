@@ -14,6 +14,7 @@ const advancedResults = (model, modelType, populate) => {
             'page',
             'limit',
             'populate',
+            'search',
         ];
         // This removal is done for query formatting to get rid of slect and such words which are not part of the model.
         objectsToRemoveFromQuery.forEach(
@@ -59,6 +60,10 @@ const advancedResults = (model, modelType, populate) => {
             if (modelType === 'course') {
                 queryObject.category = { $eq: request.params.category };
             }
+        }
+
+        if (request.query.search !== undefined) {
+            queryObject.$text = { $search: request.query.search };
         }
 
         console.log(queryObject);
