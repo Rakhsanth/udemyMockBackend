@@ -71,7 +71,12 @@ app.use(rateLimiter); // Plugging in the rate limiter
 
 app.use(hpp()); // prevent http parameter pollution
 
-app.use(cors({ credentials: true, origin: ['http://localhost:3000'] })); // Enable CORS (Cross Origin Resource Sharing)
+app.use(
+    cors({
+        credentials: true,
+        origin: ['http://localhost:3000', 'https://mockdemy.vercel.app'],
+    })
+); // Enable CORS (Cross Origin Resource Sharing)
 
 app.use('/api/v1/bootcamps', bootcampRoutes);
 app.use('/api/v1/courses', courseRoutes);
