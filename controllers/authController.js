@@ -31,7 +31,6 @@ const userRegister = asyncMiddlewareHandler(async (request, response, next) => {
 
     const user = await User.create({
         thirdParty,
-        thirdPartyId,
         name,
         email,
         password,

@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema({
     },
     thirdPartyId: {
         type: String,
+        unique: [true, '3rd party ID must be unique for each user'],
         // required if thirdParty is true
     },
     name: {
