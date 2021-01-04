@@ -123,15 +123,17 @@ const forgotPassword = asyncMiddlewareHandler(
 
         await user.save({ validateBeforeSave: false });
 
-        const resetPasswordLink = `${request.protocol}://${request.get(
-            'host'
-        )}/api/v1/auth/resetPassword/${resetToken}`;
+        const resetPasswordLink = `${process.env.CLIENT_URL}/resetForgotPassword`;
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(resetToken);
+        }
 
         // create the object for sending email
         const emailParameters = {
             mailSubject: 'Reset Password',
             mailContent: `<p>
-                            <a href="https://google.com">click here to reset the password</a><br>
+                            <a href="${resetPasswordLink}">click here to reset the password</a><br>
                             or use the link : ${resetPasswordLink} in your preferred browser
                           </p>`,
             userEmail: email,
