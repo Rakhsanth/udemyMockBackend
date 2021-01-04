@@ -119,11 +119,11 @@ const forgotPassword = asyncMiddlewareHandler(
         }
 
         // getting reset token and meanwhile this functions sets the hashed reset password and expiry in DB
-        resetToken = user.getResetToken();
+        const resetToken = user.getResetToken();
 
         await user.save({ validateBeforeSave: false });
 
-        const resetPasswordLink = `${process.env.CLIENT_URL}/resetForgotPassword`;
+        const resetPasswordLink = `${process.env.CLIENT_URL}/#/resetForgotPassword`;
 
         if (process.env.NODE_ENV === 'development') {
             console.log(resetToken);
@@ -134,7 +134,7 @@ const forgotPassword = asyncMiddlewareHandler(
             mailSubject: 'Reset Password',
             mailContent: `<p>
                             <a href="${resetPasswordLink}">click here to reset the password</a><br>
-                            or use the link : ${resetPasswordLink} in your preferred browser
+                            or use the link : ${resetPasswordLink} in your preferred browser and user the Reset Token : ${resetToken}
                           </p>`,
             userEmail: email,
         };
